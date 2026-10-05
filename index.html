@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ayo baca! - belajar membaca suku kata kv-kv</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts: Fredoka & Quicksand -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        quicksand: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            pink: '#ff6b8b',
+                            yellow: '#ffd166',
+                            green: '#06d6a0',
+                            blue: '#118ab2',
+                            purple: '#8338ec',
+                            orange: '#ff9f1c',
+                            softbg: '#f4f9ff'
+                        }
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pop': 'pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { transform: 'scale(0.85)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* MANDATORY RULE ENFORCEMENT: STRICT LOWERCASE EVERYTHING */
+        * {
+            text-transform: lowercase !important;
+        }
+
+        body {
+            font-family: 'Fredoka', cursive, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+            min-height: 100vh;
+        }
+
+        /* Custom mobile scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff6b8b;
+            border-radius: 10px;
+        }
+
+        /* Claymorphism tactile buttons for kids */
+        .btn-clay {
+            box-shadow: 0 6px 0 rgba(0,0,0,0.1), inset 0 3px 0 rgba(255,255,255,0.5);
+            transition: all 0.12s ease;
+        }
+        .btn-clay:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+
+        .card-clay {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.06), inset 0 3px 0 rgba(255,255,255,0.7);
+        }
+
+        /* Pulsing aura for speech prompt button */
+        .pulse-aura {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(131, 56, 236, 0.6); }
+            70% { transform: scale(1.04); box-shadow: 0 0 0 16px rgba(131, 56, 236, 0); }
+            100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(131, 56, 236, 0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased pb-12">
+
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b-4 border-yellow-300 px-4 py-3">
+        <div class="max-w-2xl mx-auto flex items-center justify-between">
+            <!-- App Logo & Title -->
+            <div class="flex items-center space-x-2.5">
+                <div class="w-11 h-11 bg-gradient-to-tr from-brand-pink to-brand-purple rounded-2xl flex items-center justify-center text-white text-xl shadow-md transform -rotate-3">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-brand-pink leading-none tracking-wide">ayo baca! ✨</h1>
+                    <p class="text-[11px] font-quicksand text-slate-500 font-bold mt-0.5">latihan membaca suku kata kv-kv</p>
+                </div>
+            </div>
+
+            <!-- Gamification Score & Sound Toggles -->
+            <div class="flex items-center space-x-2">
+                <!-- Stars Badge -->
+                <div class="flex items-center bg-amber-100 border-2 border-amber-300 px-3 py-1 rounded-2xl shadow-inner">
+                    <i class="fa-solid fa-star text-amber-500 text-base mr-1.5 animate-bounce-slow"></i>
+                    <span id="star-count" class="text-base font-bold text-amber-800">0</span>
+                </div>
+
+                <!-- Speech Speed Toggle -->
+                <button id="btn-speed" onclick="toggleSpeechSpeed()" class="w-9 h-9 bg-slate-100 hover:bg-slate-200 border-2 border-slate-300 rounded-xl flex items-center justify-center text-slate-700 transition" title="kecepatan suara">
+                    <i id="speed-icon" class="fa-solid fa-gauge-simple-high text-xs"></i>
+                </button>
+
+                <!-- Audio FX Toggle -->
+                <button id="btn-sound" onclick="toggleAudioFX()" class="w-9 h-9 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 rounded-xl flex items-center justify-center text-emerald-700 transition" title="efek suara">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 pt-4">
+        <!-- Navigation Tabs -->
+        <div class="grid grid-cols-3 gap-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-3xl border-2 border-slate-200 mb-5 shadow-sm">
+            <button onclick="switchTab('syllable')" id="tab-syllable" class="tab-btn py-2.5 px-2 rounded-2xl text-center transition flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-1.5 bg-brand-pink text-white font-bold shadow-md">
+                <i class="fa-solid fa-shapes text-base"></i>
+                <span class="text-xs sm:text-sm">suku kata</span>
+            </button>
+            <button onclick="switchTab('words')" id="tab-words" class="tab-btn py-2.5 px-2 rounded-2xl text-center transition flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-1.5 text-slate-600 hover:bg-slate-100 font-bold">
+                <i class="fa-solid fa-layer-group text-base"></i>
+                <span class="text-xs sm:text-sm">kartu kata</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn py-2.5 px-2 rounded-2xl text-center transition flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-1.5 text-slate-600 hover:bg-slate-100 font-bold">
+                <i class="fa-solid fa-gamepad text-base"></i>
+                <span class="text-xs sm:text-sm">main kuis</span>
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: MODI BELAJAR SUKU KATA ================= -->
+        <section id="view-syllable" class="tab-view space-y-4">
+            <!-- Instruction Banner -->
+            <div class="bg-gradient-to-r from-pink-400 to-purple-500 rounded-3xl p-4 text-white shadow-md flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold">mari belajar suku kata!</h2>
+                    <p class="text-xs font-quicksand opacity-90">pilih vokal 1 & vokal 2 untuk variasi kombinasi.</p>
+                </div>
+                <div class="text-2xl opacity-80">
+                    <i class="fa-solid fa-volume-high"></i>
+                </div>
+            </div>
+
+            <!-- Dual Vowel Combination Filter -->
+            <div class="bg-white rounded-3xl p-3.5 border-2 border-amber-200 card-clay space-y-3">
+                <!-- Vowel 1 selector -->
+                <div>
+                    <span class="text-xs font-bold text-amber-700 block mb-1.5">1. pilih vokal pertama (suku kata 1):</span>
+                    <div class="grid grid-cols-5 gap-1.5" id="vowel1-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Vowel 2 selector -->
+                <div>
+                    <span class="text-xs font-bold text-purple-700 block mb-1.5">2. pilih vokal kedua (suku kata 2):</span>
+                    <div class="grid grid-cols-5 gap-1.5" id="vowel2-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consonant Selection Slider -->
+            <div>
+                <span class="text-xs font-bold text-slate-600 block mb-1.5 px-1">pilih konsonan utama:</span>
+                <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none" id="consonant-pills">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Generated Syllables Card Grid -->
+            <div class="bg-white rounded-3xl p-4 border-2 border-slate-200 card-clay">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 id="syllable-group-title" class="font-bold text-slate-700 text-sm">kombinasi vokal 'a' - 'a'</h3>
+                    <button onclick="playAllCurrentSyllables()" class="text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold px-3 py-1.5 rounded-full transition flex items-center space-x-1">
+                        <i class="fa-solid fa-play text-[10px]"></i>
+                        <span>baca semua</span>
+                    </button>
+                </div>
+                
+                <div id="syllable-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <!-- Generated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: KARTU KATA DUA SUKU KATA (KV-KV) ================= -->
+        <section id="view-words" class="tab-view hidden space-y-4">
+            <!-- Filter presets -->
+            <div class="flex items-center space-x-2 overflow-x-auto pb-1" id="word-category-filter">
+                <button onclick="filterWords('all')" class="cat-pill active bg-brand-purple text-white px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap shadow-sm">semua kata</button>
+                <button onclick="filterWords('a-a')" class="cat-pill bg-white text-slate-600 border border-slate-200 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap">vokal a-a</button>
+                <button onclick="filterWords('a-i')" class="cat-pill bg-white text-slate-600 border border-slate-200 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap">vokal a-i</button>
+                <button onclick="filterWords('a-u')" class="cat-pill bg-white text-slate-600 border border-slate-200 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap">vokal a-u</button>
+                <button onclick="filterWords('i-a')" class="cat-pill bg-white text-slate-600 border border-slate-200 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap">vokal i-a</button>
+                <button onclick="filterWords('u-a')" class="cat-pill bg-white text-slate-600 border border-slate-200 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap">vokal u-a</button>
+                <button onclick="filterWords('o-a')" class="cat-pill bg-white text-slate-600 border border-slate-200 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap">vokal o-a</button>
+            </div>
+
+            <!-- Active Word Spotlight Spotlight Card (No visual images allowed) -->
+            <div id="word-spotlight-card" class="bg-white rounded-3xl p-6 border-4 border-brand-yellow card-clay text-center relative overflow-hidden">
+                <div class="text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">fokus belajar kata</div>
+
+                <!-- Word Syllable Interactive Tokens -->
+                <div class="flex justify-center items-center space-x-2 mb-4" id="spotlight-syllable-tokens">
+                    <button id="token-s1" onclick="speakText(currentSpotlightWord.s1)" class="bg-pink-100 hover:bg-pink-200 text-pink-600 px-5 py-3 rounded-2xl text-4xl font-extrabold border-2 border-pink-300 transition active:scale-95 btn-clay">
+                        ba
+                    </button>
+                    <span class="text-2xl font-bold text-slate-300">+</span>
+                    <button id="token-s2" onclick="speakText(currentSpotlightWord.s2)" class="bg-blue-100 hover:bg-blue-200 text-blue-600 px-5 py-3 rounded-2xl text-4xl font-extrabold border-2 border-blue-300 transition active:scale-95 btn-clay">
+                        bu
+                    </button>
+                </div>
+
+                <!-- Combined Full Word Display -->
+                <div id="spotlight-full-word" class="text-5xl font-black text-slate-800 mb-6 tracking-wider">
+                    babu
+                </div>
+
+                <!-- Controls: Mode Eja vs Baca Gabungan -->
+                <div class="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+                    <button onclick="spellCurrentSpotlightWord()" class="btn-clay bg-gradient-to-r from-brand-pink to-rose-400 text-white font-bold py-3 px-3 rounded-2xl text-sm flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-spell-check text-xs"></i>
+                        <span>eja (s1 + s2)</span>
+                    </button>
+                    <button onclick="speakFullCurrentWord()" class="btn-clay bg-gradient-to-r from-brand-green to-emerald-500 text-white font-bold py-3 px-3 rounded-2xl text-sm flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-volume-high text-xs"></i>
+                        <span>baca gabungan</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Word List Grid -->
+            <div class="bg-white rounded-3xl p-4 border-2 border-slate-200 card-clay">
+                <h4 class="font-bold text-slate-700 text-xs mb-3 flex items-center">
+                    <i class="fa-solid fa-list text-brand-purple mr-1.5"></i>
+                    <span>pilih kata kv-kv dari daftar:</span>
+                </h4>
+                <div id="word-cards-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: MODE MAIN / KUIS TEBAK SUKU KATA ================= -->
+        <section id="view-quiz" class="tab-view hidden space-y-4">
+            <!-- Score & Streak Banner -->
+            <div class="bg-white rounded-3xl p-3.5 border-2 border-purple-200 card-clay flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 font-bold text-lg">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">kuis tebak suara</p>
+                        <p class="text-xs font-bold text-slate-700">dengar & pilih kata</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-400 font-bold">rentetan</p>
+                        <p class="text-xs font-bold text-emerald-600" id="quiz-streak">🔥 0</p>
+                    </div>
+                    <button onclick="resetQuiz()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-xl font-bold">
+                        <i class="fa-solid fa-rotate-right mr-1 text-[10px]"></i> ulang
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Play Card -->
+            <div class="bg-white rounded-3xl p-6 border-4 border-purple-300 card-clay text-center space-y-5 relative">
+                
+                <!-- Large Audio Prompt Button -->
+                <div class="inline-block">
+                    <button id="btn-quiz-audio" onclick="playQuizPromptAudio()" class="pulse-aura w-24 h-24 bg-gradient-to-tr from-brand-purple to-indigo-500 rounded-full flex items-center justify-center text-white text-4xl shadow-lg border-4 border-white transition transform active:scale-90">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <p class="text-xs font-bold text-purple-600 mt-2.5">tekan untuk mendengar kata!</p>
+                </div>
+
+                <!-- Instructions prompt -->
+                <div class="bg-purple-50 rounded-2xl p-3 border border-purple-100 max-w-xs mx-auto">
+                    <p class="text-xs font-bold text-purple-800">kata apakah yang diucapkan?</p>
+                </div>
+
+                <!-- 4 Word Choices Grid (Pure Text - Big Touch Targets) -->
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">pilih 1 kata yang benar:</p>
+                    <div id="quiz-options-grid" class="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Custom Feedback Modal -->
+    <div id="modal-success" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-xs w-full text-center border-4 border-emerald-400 card-clay animate-pop space-y-4">
+            <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-500 text-3xl border-4 border-emerald-200">
+                <i class="fa-solid fa-check animate-bounce"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-800" id="modal-title">hebat sekali! 🎉</h3>
+                <p class="text-xs font-quicksand text-slate-600 mt-1 font-bold" id="modal-success-msg">jawaban kamu benar!</p>
+            </div>
+            <button onclick="nextQuizQuestion()" class="btn-clay w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl text-sm">
+                lanjut kata berikutnya 🚀
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const VOWELS = ['a', 'i', 'u', 'e', 'o'];
+        const CONSONANTS = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'y', 'z'];
+
+        // Comprehensive Database of 2-Syllable KV-KV Words in Indonesian (Strictly Lowercase)
+        const WORDS_DATABASE = [
+            // Stage 'a-a'
+            { word: 'baba', s1: 'ba', s2: 'ba', vGroup: 'a-a' },
+            { word: 'baca', s1: 'ba', s2: 'ca', vGroup: 'a-a' },
+            { word: 'dada', s1: 'da', s2: 'da', vGroup: 'a-a' },
+            { word: 'kaca', s1: 'ka', s2: 'ca', vGroup: 'a-a' },
+            { word: 'mata', s1: 'ma', s2: 'ta', vGroup: 'a-a' },
+            { word: 'rasa', s1: 'ra', s2: 'sa', vGroup: 'a-a' },
+            { word: 'sapa', s1: 'sa', s2: 'pa', vGroup: 'a-a' },
+            { word: 'tata', s1: 'ta', s2: 'ta', vGroup: 'a-a' },
+            { word: 'kaya', s1: 'ka', s2: 'ya', vGroup: 'a-a' },
+            { word: 'jaza', s1: 'ja', s2: 'za', vGroup: 'a-a' },
+
+            // Stage 'a-i'
+            { word: 'babi', s1: 'ba', s2: 'bi', vGroup: 'a-i' },
+            { word: 'caci', s1: 'ca', s2: 'ci', vGroup: 'a-i' },
+            { word: 'dadi', s1: 'da', s2: 'di', vGroup: 'a-i' },
+            { word: 'papi', s1: 'pa', s2: 'pi', vGroup: 'a-i' },
+            { word: 'sari', s1: 'sa', s2: 'ri', vGroup: 'a-i' },
+            { word: 'tali', s1: 'ta', s2: 'li', vGroup: 'a-i' },
+            { word: 'lari', s1: 'la', s2: 'ri', vGroup: 'a-i' },
+            { word: 'gaji', s1: 'ga', s2: 'ji', vGroup: 'a-i' },
+            { word: 'hati', s1: 'ha', s2: 'ti', vGroup: 'a-i' },
+            { word: 'kami', s1: 'ka', s2: 'mi', vGroup: 'a-i' },
+
+            // Stage 'a-u'
+            { word: 'babu', s1: 'ba', s2: 'bu', vGroup: 'a-u' },
+            { word: 'cacu', s1: 'ca', s2: 'cu', vGroup: 'a-u' },
+            { word: 'dadu', s1: 'da', s2: 'du', vGroup: 'a-u' },
+            { word: 'baju', s1: 'ba', s2: 'ju', vGroup: 'a-u' },
+            { word: 'kayu', s1: 'ka', s2: 'yu', vGroup: 'a-u' },
+            { word: 'sapu', s1: 'sa', s2: 'pu', vGroup: 'a-u' },
+            { word: 'tamu', s1: 'ta', s2: 'mu', vGroup: 'a-u' },
+            { word: 'rabu', s1: 'ra', s2: 'bu', vGroup: 'a-u' },
+            { word: 'sabu', s1: 'sa', s2: 'bu', vGroup: 'a-u' },
+            { word: 'paku', s1: 'pa', s2: 'ku', vGroup: 'a-u' },
+
+            // Stage 'i-a'
+            { word: 'piba', s1: 'pi', s2: 'ba', vGroup: 'i-a' },
+            { word: 'bisa', s1: 'bi', s2: 'sa', vGroup: 'i-a' },
+            { word: 'lima', s1: 'li', s2: 'ma', vGroup: 'i-a' },
+            { word: 'pita', s1: 'pi', s2: 'ta', vGroup: 'i-a' },
+            { word: 'gila', s1: 'gi', s2: 'la', vGroup: 'i-a' },
+            { word: 'bila', s1: 'bi', s2: 'la', vGroup: 'i-a' },
+            { word: 'mika', s1: 'mi', s2: 'ka', vGroup: 'i-a' },
+            { word: 'pisa', s1: 'pi', s2: 'sa', vGroup: 'i-a' },
+
+            // Stage 'u-a'
+            { word: 'kuda', s1: 'ku', s2: 'da', vGroup: 'u-a' },
+            { word: 'lupa', s1: 'lu', s2: 'pa', vGroup: 'u-a' },
+            { word: 'buka', s1: 'bu', s2: 'ka', vGroup: 'u-a' },
+            { word: 'duka', s1: 'du', s2: 'ka', vGroup: 'u-a' },
+            { word: 'muka', s1: 'mu', s2: 'ka', vGroup: 'u-a' },
+            { word: 'suka', s1: 'su', s2: 'ka', vGroup: 'u-a' },
+            { word: 'tuba', s1: 'tu', s2: 'ba', vGroup: 'u-a' },
+            { word: 'pula', s1: 'pu', s2: 'la', vGroup: 'u-a' },
+
+            // Stage 'o-a'
+            { word: 'bola', s1: 'bo', s2: 'la', vGroup: 'o-a' },
+            { word: 'roda', s1: 'ro', s2: 'da', vGroup: 'o-a' },
+            { word: 'coba', s1: 'co', s2: 'ba', vGroup: 'o-a' },
+            { word: 'kota', s1: 'ko', s2: 'ta', vGroup: 'o-a' },
+            { word: 'dosa', s1: 'do', s2: 'sa', vGroup: 'o-a' },
+            { word: 'fota', s1: 'fo', s2: 'ta', vGroup: 'o-a' },
+            { word: 'soga', s1: 'so', s2: 'ga', vGroup: 'o-a' }
+        ];
+
+        let selectedVowel1 = 'a';
+        let selectedVowel2 = 'a';
+        let selectedConsonant = 'b';
+
+        let currentSpotlightWord = WORDS_DATABASE[0];
+        let userStars = parseInt(localStorage.getItem('ayo_baca_kv_stars') || '0');
+        let isAudioFXEnabled = true;
+        let speechRate = 0.8;
+
+        // Quiz State
+        let currentQuizTarget = null;
+        let currentStreak = 0;
+
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtxInstance = null;
+
+        function getAudioContext() {
+            if (!audioCtxInstance) {
+                audioCtxInstance = new AudioCtx();
+            }
+            if (audioCtxInstance.state === 'suspended') {
+                audioCtxInstance.resume();
+            }
+            return audioCtxInstance;
+        }
+
+        function playTone(freq, type, duration) {
+            if (!isAudioFXEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) {
+                console.log("audio fx note:", e);
+            }
+        }
+
+        function playSuccessAudioFX() {
+            if (!isAudioFXEnabled) return;
+            setTimeout(() => playTone(523.25, 'sine', 0.15), 0);   // c5
+            setTimeout(() => playTone(659.25, 'sine', 0.15), 100); // e5
+            setTimeout(() => playTone(783.99, 'sine', 0.15), 200); // g5
+            setTimeout(() => playTone(1046.50, 'sine', 0.25), 300); // c6
+        }
+
+        function playErrorAudioFX() {
+            if (!isAudioFXEnabled) return;
+            setTimeout(() => playTone(220, 'sawtooth', 0.18), 0);
+            setTimeout(() => playTone(180, 'sawtooth', 0.22), 120);
+        }
+
+        function playPopAudioFX() {
+            playTone(440, 'sine', 0.06);
+        }
+
+        let indonesianVoice = null;
+
+        function initVoices() {
+            if ('speechSynthesis' in window) {
+                const voices = window.speechSynthesis.getVoices();
+                indonesianVoice = voices.find(v => v.lang.toLowerCase().includes('id')) || null;
+            }
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = initVoices;
+            initVoices();
+        }
+
+        // Web Speech API Core Pronunciation Function
+        function speakText(text, callback = null) {
+            if (!('speechSynthesis' in window)) {
+                if (callback) callback();
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+            utterance.lang = 'id-ID';
+            utterance.rate = speechRate;
+            utterance.pitch = 1.1; // Slightly higher pitch for child friendliness
+
+            if (indonesianVoice) {
+                utterance.voice = indonesianVoice;
+            }
+
+            if (callback) {
+                utterance.onend = callback;
+                utterance.onerror = callback;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateStarDisplay();
+            renderVowelSelectors();
+            renderConsonantPills();
+            renderSyllablesGrid();
+            renderWordCards('all');
+            updateWordSpotlightCard(WORDS_DATABASE[0]);
+            initQuizQuestion();
+        });
+
+        function switchTab(tabName) {
+            playPopAudioFX();
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-brand-pink', 'text-white', 'shadow-md');
+                b.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+
+            const activeView = document.getElementById(`view-${tabName}`);
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            if (activeView && activeBtn) {
+                activeView.classList.remove('hidden');
+                activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+                activeBtn.classList.add('bg-brand-pink', 'text-white', 'shadow-md');
+            }
+        }
+
+        function toggleAudioFX() {
+            isAudioFXEnabled = !isAudioFXEnabled;
+            const icon = document.getElementById('sound-icon');
+            const btn = document.getElementById('btn-sound');
+            if (isAudioFXEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                btn.className = 'w-9 h-9 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 rounded-xl flex items-center justify-center text-emerald-700 transition';
+                playPopAudioFX();
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                btn.className = 'w-9 h-9 bg-slate-200 border-2 border-slate-300 rounded-xl flex items-center justify-center text-slate-500 transition';
+            }
+        }
+
+        function toggleSpeechSpeed() {
+            if (speechRate === 0.8) {
+                speechRate = 0.5;
+                document.getElementById('speed-icon').className = 'fa-solid fa-gauge text-xs';
+                speakText("kecepatan pelan");
+            } else {
+                speechRate = 0.8;
+                document.getElementById('speed-icon').className = 'fa-solid fa-gauge-simple-high text-xs';
+                speakText("kecepatan normal");
+            }
+        }
+
+        function addStars(amount) {
+            userStars += amount;
+            localStorage.setItem('ayo_baca_kv_stars', userStars);
+            updateStarDisplay();
+        }
+
+        function updateStarDisplay() {
+            document.getElementById('star-count').innerText = userStars;
+        }
+
+        function renderVowelSelectors() {
+            const v1Container = document.getElementById('vowel1-container');
+            const v2Container = document.getElementById('vowel2-container');
+
+            v1Container.innerHTML = '';
+            v2Container.innerHTML = '';
+
+            VOWELS.forEach(v => {
+                // V1 button
+                const btn1 = document.createElement('button');
+                btn1.className = `btn-clay py-1.5 rounded-xl font-bold text-lg transition ${selectedVowel1 === v ? 'bg-amber-400 text-amber-900 border-2 border-amber-500' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'}`;
+                btn1.innerText = v;
+                btn1.onclick = () => {
+                    playPopAudioFX();
+                    selectedVowel1 = v;
+                    renderVowelSelectors();
+                    renderSyllablesGrid();
+                    speakText(`vokal pertama ${v}`);
+                };
+                v1Container.appendChild(btn1);
+
+                // V2 button
+                const btn2 = document.createElement('button');
+                btn2.className = `btn-clay py-1.5 rounded-xl font-bold text-lg transition ${selectedVowel2 === v ? 'bg-purple-400 text-white border-2 border-purple-600' : 'bg-purple-50 text-purple-800 hover:bg-purple-100'}`;
+                btn2.innerText = v;
+                btn2.onclick = () => {
+                    playPopAudioFX();
+                    selectedVowel2 = v;
+                    renderVowelSelectors();
+                    renderSyllablesGrid();
+                    speakText(`vokal kedua ${v}`);
+                };
+                v2Container.appendChild(btn2);
+            });
+        }
+
+        function renderConsonantPills() {
+            const container = document.getElementById('consonant-pills');
+            container.innerHTML = '';
+
+            CONSONANTS.forEach(c => {
+                const btn = document.createElement('button');
+                const active = selectedConsonant === c;
+                btn.className = `px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap transition ${active ? 'bg-brand-purple text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`;
+                btn.innerText = `konsonan ${c}`;
+                btn.onclick = () => {
+                    playPopAudioFX();
+                    selectedConsonant = c;
+                    renderConsonantPills();
+                    renderSyllablesGrid();
+                    speakText(`konsonan ${c}`);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderSyllablesGrid() {
+            const grid = document.getElementById('syllable-grid');
+            const title = document.getElementById('syllable-group-title');
+            title.innerText = `kombinasi vokal '${selectedVowel1}' - '${selectedVowel2}'`;
+            grid.innerHTML = '';
+
+            // Generate combinations using selected consonant as base + other consonants
+            const targetConsonants = [selectedConsonant, 'b', 'c', 'd', 'k', 'm', 'p', 'r', 's', 't']
+                .filter((v, i, a) => a.indexOf(v) === i)
+                .slice(0, 6);
+
+            targetConsonants.forEach(c2 => {
+                const s1 = selectedConsonant + selectedVowel1;
+                const s2 = c2 + selectedVowel2;
+                const fullWord = s1 + s2;
+
+                const card = document.createElement('div');
+                card.className = 'btn-clay bg-gradient-to-br from-white to-slate-50 border-2 border-purple-200 hover:border-purple-400 rounded-2xl p-3 text-center cursor-pointer transition transform active:scale-95 flex flex-col items-center justify-center';
+                
+                card.innerHTML = `
+                    <div class="text-xs text-brand-purple font-bold mb-0.5">${s1} - ${s2}</div>
+                    <div class="text-2xl font-black text-slate-800">${fullWord}</div>
+                `;
+
+                card.onclick = () => {
+                    playPopAudioFX();
+                    // Speak s1, then s2, then full
+                    speakText(s1, () => {
+                        setTimeout(() => {
+                            speakText(s2, () => {
+                                setTimeout(() => {
+                                    speakText(fullWord);
+                                }, 300);
+                            });
+                        }, 300);
+                    });
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function playAllCurrentSyllables() {
+            const cards = document.querySelectorAll('#syllable-grid .text-2xl');
+            let index = 0;
+
+            function step() {
+                if (index < cards.length) {
+                    const text = cards[index].innerText;
+                    speakText(text, () => {
+                        index++;
+                        setTimeout(step, 400);
+                    });
+                }
+            }
+            step();
+        }
+
+        function renderWordCards(filterCat = 'all') {
+            const grid = document.getElementById('word-cards-grid');
+            grid.innerHTML = '';
+
+            const filtered = filterCat === 'all' 
+                ? WORDS_DATABASE 
+                : WORDS_DATABASE.filter(w => w.vGroup === filterCat);
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'btn-clay bg-white border-2 border-slate-200 hover:border-brand-pink rounded-2xl p-3 text-center cursor-pointer transition transform active:scale-95 flex flex-col items-center justify-center';
+                
+                card.innerHTML = `
+                    <div class="text-xl font-black text-slate-800 mb-0.5">${item.word}</div>
+                    <div class="text-xs text-brand-pink font-bold">${item.s1} - ${item.s2}</div>
+                `;
+
+                card.onclick = () => {
+                    playPopAudioFX();
+                    updateWordSpotlightCard(item);
+                    speakText(item.word);
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function filterWords(cat) {
+            playPopAudioFX();
+            document.querySelectorAll('#word-category-filter button').forEach(b => {
+                b.className = 'cat-pill bg-white text-slate-600 border border-slate-200 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap';
+            });
+            event.target.className = 'cat-pill active bg-brand-purple text-white px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap shadow-sm';
+            renderWordCards(cat);
+        }
+
+        function updateWordSpotlightCard(wordItem) {
+            currentSpotlightWord = wordItem;
+            document.getElementById('token-s1').innerText = wordItem.s1;
+            document.getElementById('token-s2').innerText = wordItem.s2;
+            document.getElementById('spotlight-full-word').innerText = wordItem.word;
+        }
+
+        function spellCurrentSpotlightWord() {
+            playPopAudioFX();
+            const w = currentSpotlightWord;
+            // Eja: Suku kata 1 -> Suku kata 2 -> Kata gabungan
+            speakText(w.s1, () => {
+                setTimeout(() => {
+                    speakText(w.s2, () => {
+                        setTimeout(() => {
+                            speakText(w.word);
+                        }, 350);
+                    });
+                }, 350);
+            });
+        }
+
+        function speakFullCurrentWord() {
+            playPopAudioFX();
+            speakText(currentSpotlightWord.word);
+        }
+
+        function initQuizQuestion() {
+            // Select random target word
+            const randomIndex = Math.floor(Math.random() * WORDS_DATABASE.length);
+            currentQuizTarget = WORDS_DATABASE[randomIndex];
+
+            // Generate 4 choices (1 correct + 3 distractors)
+            let choices = [currentQuizTarget.word];
+
+            while (choices.length < 4) {
+                const randomItem = WORDS_DATABASE[Math.floor(Math.random() * WORDS_DATABASE.length)];
+                if (!choices.includes(randomItem.word)) {
+                    choices.push(randomItem.word);
+                }
+            }
+
+            // Shuffle options
+            choices.sort(() => Math.random() - 0.5);
+
+            // Render options grid (Pure text, big touch buttons)
+            const optionsGrid = document.getElementById('quiz-options-grid');
+            optionsGrid.innerHTML = '';
+
+            choices.forEach(optionText => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-clay bg-gradient-to-br from-white to-purple-50 border-2 border-purple-300 hover:border-purple-500 rounded-2xl py-4 text-2xl font-black text-purple-800 transition transform active:scale-95 shadow-sm';
+                btn.innerText = optionText;
+                btn.onclick = () => handleQuizOptionClick(optionText);
+                optionsGrid.appendChild(btn);
+            });
+
+            // Play prompt sound after small delay
+            setTimeout(() => {
+                playQuizPromptAudio();
+            }, 400);
+        }
+
+        function playQuizPromptAudio() {
+            if (currentQuizTarget) {
+                speakText(`pilihlah kata ${currentQuizTarget.word}`);
+            }
+        }
+
+        function handleQuizOptionClick(selectedWord) {
+            playPopAudioFX();
+
+            if (selectedWord === currentQuizTarget.word) {
+                // Correct answer!
+                playSuccessAudioFX();
+                currentStreak++;
+                addStars(5);
+                document.getElementById('quiz-streak').innerText = `🔥 ${currentStreak}`;
+
+                // Confetti animation
+                confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+
+                const praises = ["hebat!", "pintar!", "luar biasa!", "kamu hebat sekali!"];
+                const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+
+                speakText(`${randomPraise} kata ini adalah ${currentQuizTarget.word}!`, () => {
+                    setTimeout(() => {
+                        document.getElementById('modal-title').innerText = `${randomPraise} 🎉`;
+                        document.getElementById('modal-success-msg').innerText = `kamu benar! kata ini adalah "${currentQuizTarget.word}". (+5 bintang)`;
+                        document.getElementById('modal-success').classList.remove('hidden');
+                    }, 300);
+                });
+
+            } else {
+                // Wrong answer
+                playErrorAudioFX();
+                currentStreak = 0;
+                document.getElementById('quiz-streak').innerText = `🔥 0`;
+
+                speakText("coba lagi ya!", () => {
+                    // re-play target prompt
+                    setTimeout(playQuizPromptAudio, 500);
+                });
+            }
+        }
+
+        function nextQuizQuestion() {
+            playPopAudioFX();
+            document.getElementById('modal-success').classList.add('hidden');
+            initQuizQuestion();
+        }
+
+        function resetQuiz() {
+            playPopAudioFX();
+            currentStreak = 0;
+            document.getElementById('quiz-streak').innerText = `🔥 0`;
+            initQuizQuestion();
+        }
+    </script>
+</body>
+</html>
